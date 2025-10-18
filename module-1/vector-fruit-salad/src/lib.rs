@@ -19,20 +19,6 @@ impl fmt::Display for Fruit {
 
 pub struct Fruit(String);
 
-// impl FromStr for Fruit {
-//     type Err = ();
-
-//     fn from_str(s: &str) -> Result<Self, Self::Err> {
-//         Ok(Fruit::new(s))
-//     }
-// }
-
-// impl ToString for Fruit {
-//     fn to_string(&self) -> String {
-//         self.0.clone()
-//     }
-// }
-
 pub struct FruitSalad {
     fruits: Vec<Fruit>,
     rng: rand::prelude::ThreadRng,
