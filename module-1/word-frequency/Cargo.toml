@@ -1,0 +1,10 @@
+[package]
+name = "word-frequency"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+count-apostrophed-words-as-one = []
+
+[dependencies]
+clap = { version = "4.5.49", features = ["derive"] }
