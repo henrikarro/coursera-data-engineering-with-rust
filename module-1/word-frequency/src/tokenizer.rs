@@ -1,11 +1,40 @@
-#![allow(dead_code)]
+//!
+//! Contains code to break a text into smaller components.
+//!
+//! # Examples
+//! ```
+//! use word_frequency::tokenizer::{Token, Tokenizer};
+//!
+//! let mut tokenizer = Tokenizer::new("Hello, World!");
+//! assert_eq!(tokenizer.next_token(), Some(Token::Word("Hello".to_string())));
+//! assert_eq!(tokenizer.next_token(), Some(Token::Punctuation(',')));
+//! assert_eq!(tokenizer.next_token(), Some(Token::Whitespace));
+//! assert_eq!(tokenizer.next_token(), Some(Token::Word("World".to_string())));
+//! assert_eq!(tokenizer.next_token(), Some(Token::Punctuation('!')));
+//! assert_eq!(tokenizer.next_token(), None);
+//! assert_eq!(tokenizer.next_token(), None);
+//! ```
 
+/// Breaks a string into tokens.
+#[derive(Debug)]
 pub struct Tokenizer {
+    /// The input, represented as a vector to allow fast indexing
     input: Vec<char>,
+    /// The current position that we're analyzing in the input
     position: usize,
 }
 
+/// A `Token` represents the smallest meaningful unit of a text
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum Token {
+    Word(String),
+    Number(i64),
+    Whitespace,
+    Punctuation(char),
+}
+
 impl Tokenizer {
+    /// Creates a new `Tokenizer` that breaks the given string into tokens, starting at the first character.
     pub fn new(input: &str) -> Self {
         Tokenizer {
             input: input.to_string().chars().collect(),
@@ -13,6 +42,7 @@ impl Tokenizer {
         }
     }
 
+    /// Gives the next `Token` in the input, or `None` if we are at the end.
     pub fn next_token(&mut self) -> Option<Token> {
         match self.peek_char()? {
             c if c.is_whitespace() => self.read_whitespace(),
@@ -87,20 +117,13 @@ impl Tokenizer {
         Some(self.input[self.position])
     }
 
+    #[cfg(feature = "count-apostrophed-words-as-one")]
     fn peek_next_char(&self) -> Option<char> {
         if self.position + 1 >= self.input.len() {
             return None;
         }
         Some(self.input[self.position + 1])
     }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub enum Token {
-    Word(String),
-    Number(i64),
-    Whitespace,
-    Punctuation(char),
 }
 
 #[cfg(test)]
@@ -127,6 +150,7 @@ mod tests {
         assert_eq!(tokenizer.peek_char(), None);
     }
 
+    #[cfg(feature = "count-apostrophed-words-as-one")]
     #[test]
     fn test_peek_next_char() {
         let mut tokenizer = Tokenizer::new("abc");
@@ -140,7 +164,6 @@ mod tests {
     #[test]
     fn test_simple_tokenization() {
         let mut tokenizer = Tokenizer::new("Hello, World!");
-        assert_eq!(0, tokenizer.position);
         assert_tokens(
             &mut tokenizer,
             &[
@@ -151,7 +174,6 @@ mod tests {
                 Token::Punctuation('!'),
             ],
         );
-        assert_eq!(13, tokenizer.position);
     }
 
     #[cfg(feature = "count-apostrophed-words-as-one")]

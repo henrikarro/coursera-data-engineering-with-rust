@@ -2,6 +2,8 @@
 name = "word-frequency"
 version = "0.1.0"
 edition = "2024"
+authors = ["Henrik Arro"]
+description = "Counts the number of occurrences of words in a file and prints the most common"
 
 [features]
 count-apostrophed-words-as-one = []
