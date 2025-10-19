@@ -11,7 +11,7 @@
 //! let mut frequency_counter = FrequencyCounter::from_file("poem.txt").unwrap();
 //! frequency_counter.read_stop_words("stop-words.txt").unwrap();
 //! let word_frequencies = frequency_counter.count_frequencies();
-//! let sorted_frequencies = FrequencyCounter::sort_frequencies(&word_frequencies);
+//! let sorted_frequencies = FrequencyCounter::sort_frequencies(&word_frequencies, false);
 //! assert_eq!(sorted_frequencies.len(), 15);
 //! assert_eq!(sorted_frequencies[0], Count::new("nobody", 2));
 //! assert_eq!(sorted_frequencies[14], Count::new("somebody", 1));
@@ -68,11 +68,29 @@ impl FrequencyCounter {
     }
 
     /// Given a mapping from words to frequencies as produced by [`FrequencyCounter::count_frequencies()`],
-    /// returns a vector of [`Count`] objects sorted in descending order by count.
-    pub fn sort_frequencies<'a>(word_frequencies: &'a HashMap<String, usize>) -> Vec<Count<'a>> {
-        let mut v: Vec<_> = word_frequencies.iter().map(|wc| Count::new(wc.0, *wc.1)).collect();
+    /// returns a vector of [`Count`] objects sorted in descending order by count. If `relative` is true,
+    /// gives the count as relative between 0 and 100, if false gives the count as the actual number of
+    /// occurrences.
+    pub fn sort_frequencies<'a>(word_frequencies: &'a HashMap<String, usize>, relative: bool) -> Vec<Count<'a>> {
+        let mut v: Vec<Count> = word_frequencies.iter().map(|wc| Count::new(wc.0, *wc.1)).collect();
         v.sort();
-        v
+        if relative { FrequencyCounter::relativize_counts(v) } else { v }
+    }
+
+    fn relativize_counts(sorted_frequencies: Vec<Count>) -> Vec<Count> {
+        let mut relative = Vec::new();
+        if sorted_frequencies.is_empty() {
+            return relative;
+        }
+        if !sorted_frequencies.is_sorted() {
+            panic!("sorted_frequences is not sorted");
+        }
+        let max = sorted_frequencies[0].count as f32;
+        for f in sorted_frequencies {
+            let relative_frequency = (f.count as f32 / max) * 100.0;
+            relative.push(Count::new(f.word, relative_frequency.round() as usize));
+        }
+        relative
     }
 }
 
