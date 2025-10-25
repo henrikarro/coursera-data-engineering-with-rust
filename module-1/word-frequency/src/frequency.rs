@@ -6,6 +6,7 @@
 //! # Examples
 //!
 //! ```
+//! use std::fs::File;
 //! use word_frequency::frequency::{Count, FrequencyCounter};
 //!
 //! let mut frequency_counter = FrequencyCounter::from_file("poem.txt").unwrap();
@@ -19,6 +20,8 @@
 
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
+use std::fs::File;
+use std::io::Read;
 
 use crate::tokenizer::{Token, Tokenizer};
 
@@ -37,10 +40,18 @@ impl FrequencyCounter {
         }
     }
 
-    /// Craeates a new `FrequencyCounter` by reading the given file and converting the contents into a string.
+    /// Creates a new `FrequencyCounter` by reading from the given `Read` instance and converting the contents into a string.
+    /// The string is converted to lower case before calling the [`Self::new()`] function.
+    pub fn from_reader(mut reader: Box<dyn Read>) -> Result<Self, std::io::Error> {
+        let mut input = String::new();
+        reader.read_to_string(&mut input)?;
+        Ok(Self::new(&input.to_lowercase()))
+    }
+
+    /// Creates a new `FrequencyCounter` by opening the given file and then calling the [`Self::from_reader()`] function.
     pub fn from_file(file_name: &str) -> Result<Self, std::io::Error> {
-        let contents = std::fs::read_to_string(file_name)?.to_lowercase();
-        Ok(Self::new(&contents))
+        let reader = File::open(file_name)?;
+        Self::from_reader(Box::new(reader))
     }
 
     /// Reads a comma-separated file with "stop words", i.e., small words that you want to ignore when counting.
