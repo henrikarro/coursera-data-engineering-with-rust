@@ -66,7 +66,7 @@ fn lock_and_perform_computation(i: usize, data: Arc<Mutex<Vec<i32>>>) {
 
 fn create_data(size: usize) -> Arc<Mutex<Vec<i32>>> {
     let mut data = Vec::new();
-    for i in 1..size {
+    for i in 1..=size {
         data.push(i as i32);
     }
     Arc::new(Mutex::new(data))
