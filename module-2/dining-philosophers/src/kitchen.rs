@@ -1,4 +1,4 @@
-use std::sync::MutexGuard;
+use std::{sync::MutexGuard, thread, time::Duration};
 
 use clap::ValueEnum;
 
@@ -53,15 +53,11 @@ impl Waiter {
     }
 
     pub fn get_forks(&self, philosopher: &Philosopher) -> (MutexGuard<'_, Fork>, MutexGuard<'_, Fork>) {
-        let mut algorithm = self.algorithm;
-        if algorithm == WaiterAlgorithm::Greedy {
-            if let Some((first_fork, second_fork)) = self.find_any_free_forks(philosopher) {
-                return (first_fork, second_fork);
-            }
-            algorithm = WaiterAlgorithm::IdBased
+        if self.algorithm == WaiterAlgorithm::Greedy {
+            return self.greedily_get_forks(philosopher);
         }
         let (left, right) = (philosopher.left_fork_id, philosopher.right_fork_id);
-        let comparison = match algorithm {
+        let comparison = match self.algorithm {
             WaiterAlgorithm::IdBased => philosopher.id % 2 == 0,
             WaiterAlgorithm::LeftRight => left < right,
             WaiterAlgorithm::Deadlock => true,
@@ -85,13 +81,22 @@ impl Waiter {
         fork
     }
 
-    fn find_any_free_forks(&self, philosopher: &Philosopher) -> Option<(MutexGuard<'_, Fork>, MutexGuard<'_, Fork>)> {
-        if let Some(first_fork) = self.find_any_free_fork() {
-            if let Some(second_fork) = self.find_any_free_fork() {
+    fn greedily_get_forks(&self, philosopher: &Philosopher) -> (MutexGuard<'_, Fork>, MutexGuard<'_, Fork>) {
+        loop {
+            if let Some((first_fork, second_fork)) = self.find_any_free_forks() {
                 println!(
                     "{} greedily picked up forks {} and {}",
                     philosopher.name, first_fork.id, second_fork.id
                 );
+                return (first_fork, second_fork);
+            };
+            thread::sleep(Duration::from_millis(10));
+        }
+    }
+
+    fn find_any_free_forks(&self) -> Option<(MutexGuard<'_, Fork>, MutexGuard<'_, Fork>)> {
+        if let Some(first_fork) = self.find_any_free_fork() {
+            if let Some(second_fork) = self.find_any_free_fork() {
                 return Some((first_fork, second_fork));
             }
         }
@@ -109,10 +114,18 @@ impl Waiter {
     }
 }
 
+/// Different ways the [`Waiter`] can pick forks.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
 pub enum WaiterAlgorithm {
+    /// For even philosophers; pick up the left fork first, then the right. For odd philosophers, start with the right fork instaed.
     IdBased,
+
+    /// Pick up the left fork first, then the right, except for philosophers whose right fork has a greater id than the left.
     LeftRight,
+
+    /// Always pick up the left fork first, then the right.
     Deadlock,
+
+    /// Find any free fork, or wait until one becomes free. This ignores the philosophers' requested fork ids.
     Greedy,
 }
