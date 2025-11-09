@@ -1,4 +1,4 @@
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Mutex, MutexGuard, TryLockResult};
 
 #[derive(Debug)]
 pub struct LockedResource<T> {
@@ -12,5 +12,9 @@ impl<T> LockedResource<T> {
 
     pub fn get(&self) -> MutexGuard<'_, T> {
         self.lock.lock().unwrap()
+    }
+
+    pub fn try_get(&self) -> TryLockResult<MutexGuard<'_, T>> {
+        self.lock.try_lock()
     }
 }

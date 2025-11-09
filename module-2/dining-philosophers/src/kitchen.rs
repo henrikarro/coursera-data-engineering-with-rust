@@ -53,11 +53,19 @@ impl Waiter {
     }
 
     pub fn get_forks(&self, philosopher: &Philosopher) -> (MutexGuard<'_, Fork>, MutexGuard<'_, Fork>) {
+        let mut algorithm = self.algorithm;
+        if algorithm == WaiterAlgorithm::Greedy {
+            if let Some((first_fork, second_fork)) = self.find_any_free_forks(philosopher) {
+                return (first_fork, second_fork);
+            }
+            algorithm = WaiterAlgorithm::IdBased
+        }
         let (left, right) = (philosopher.left_fork_id, philosopher.right_fork_id);
-        let comparison = match self.algorithm {
+        let comparison = match algorithm {
             WaiterAlgorithm::IdBased => philosopher.id % 2 == 0,
             WaiterAlgorithm::LeftRight => left < right,
             WaiterAlgorithm::Deadlock => true,
+            WaiterAlgorithm::Greedy => panic!("Greedy should already have been handled"),
         };
         if comparison {
             let left_fork = self.pick_up_fork(philosopher, left);
@@ -76,11 +84,35 @@ impl Waiter {
         println!("{} picked up fork {}", philosopher.name, fork.id);
         fork
     }
+
+    fn find_any_free_forks(&self, philosopher: &Philosopher) -> Option<(MutexGuard<'_, Fork>, MutexGuard<'_, Fork>)> {
+        if let Some(first_fork) = self.find_any_free_fork() {
+            if let Some(second_fork) = self.find_any_free_fork() {
+                println!(
+                    "{} greedily picked up forks {} and {}",
+                    philosopher.name, first_fork.id, second_fork.id
+                );
+                return Some((first_fork, second_fork));
+            }
+        }
+        None
+    }
+
+    fn find_any_free_fork(&self) -> Option<MutexGuard<'_, Fork>> {
+        for fork in &self.forks {
+            let Ok(locked_fork) = fork.try_get() else {
+                continue;
+            };
+            return Some(locked_fork);
+        }
+        None
+    }
 }
 
-#[derive(Debug, Copy, Clone, ValueEnum)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
 pub enum WaiterAlgorithm {
     IdBased,
     LeftRight,
     Deadlock,
+    Greedy,
 }
