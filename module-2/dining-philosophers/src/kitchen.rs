@@ -105,10 +105,9 @@ impl Waiter {
 
     fn find_any_free_fork(&self) -> Option<MutexGuard<'_, Fork>> {
         for fork in &self.forks {
-            let Ok(locked_fork) = fork.try_get() else {
-                continue;
-            };
-            return Some(locked_fork);
+            if let Ok(locked_fork) = fork.try_get() {
+                return Some(locked_fork);
+            }
         }
         None
     }
@@ -120,7 +119,7 @@ pub enum WaiterAlgorithm {
     /// For even philosophers; pick up the left fork first, then the right. For odd philosophers, start with the right fork instaed.
     IdBased,
 
-    /// Pick up the left fork first, then the right, except for philosophers whose right fork has a greater id than the left.
+    /// Pick up the left fork first, then the right, except for philosophers whose right fork has a lower id than the left.
     LeftRight,
 
     /// Always pick up the left fork first, then the right.
