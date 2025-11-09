@@ -18,7 +18,7 @@ impl Kitchen {
     pub fn new(num_forks: usize, algorithm: WaiterAlgorithm) -> Self {
         let forks = Kitchen::create_forks(num_forks);
         let waiter = Waiter::new(&forks, algorithm);
-        Kitchen { waiter: waiter }
+        Kitchen { waiter }
     }
 
     fn create_forks(num_forks: usize) -> Vec<Fork> {
@@ -48,7 +48,7 @@ impl Waiter {
         }
         Waiter {
             forks: locked_forks,
-            algorithm: algorithm,
+            algorithm,
         }
     }
 
@@ -58,7 +58,7 @@ impl Waiter {
         }
         let (left, right) = (philosopher.left_fork_id, philosopher.right_fork_id);
         let comparison = match self.algorithm {
-            WaiterAlgorithm::IdBased => philosopher.id % 2 == 0,
+            WaiterAlgorithm::IdBased => philosopher.id.is_multiple_of(2),
             WaiterAlgorithm::LeftRight => left < right,
             WaiterAlgorithm::Deadlock => true,
             WaiterAlgorithm::Greedy => panic!("Greedy should already have been handled"),
@@ -86,7 +86,9 @@ impl Waiter {
             if let Some((first_fork, second_fork)) = self.find_any_free_forks() {
                 log::info!(
                     "{} greedily picked up forks {} and {}",
-                    philosopher.name, first_fork.id, second_fork.id
+                    philosopher.name,
+                    first_fork.id,
+                    second_fork.id
                 );
                 return (first_fork, second_fork);
             };
@@ -95,10 +97,10 @@ impl Waiter {
     }
 
     fn find_any_free_forks(&self) -> Option<(MutexGuard<'_, Fork>, MutexGuard<'_, Fork>)> {
-        if let Some(first_fork) = self.find_any_free_fork() {
-            if let Some(second_fork) = self.find_any_free_fork() {
-                return Some((first_fork, second_fork));
-            }
+        if let Some(first_fork) = self.find_any_free_fork()
+            && let Some(second_fork) = self.find_any_free_fork()
+        {
+            return Some((first_fork, second_fork));
         }
         None
     }

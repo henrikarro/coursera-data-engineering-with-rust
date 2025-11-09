@@ -12,9 +12,9 @@ pub struct Philosopher {
 impl Philosopher {
     fn new(id: usize, left_fork_id: usize, right_fork_id: usize, name: &str) -> Self {
         Philosopher {
-            id: id,
-            left_fork_id: left_fork_id,
-            right_fork_id: right_fork_id,
+            id,
+            left_fork_id,
+            right_fork_id,
             name: name.to_string(),
         }
     }
@@ -56,7 +56,7 @@ pub fn create_philosophers(num_philosophers: usize, num_forks: usize) -> Vec<Phi
         .iter()
         .enumerate()
         .filter(|(id, _name)| id < &num_philosophers)
-        .map(|(id, name)| create_philosopher(num_forks, id, *name))
+        .map(|(id, name)| create_philosopher(num_forks, id, name))
         .collect()
 }
 

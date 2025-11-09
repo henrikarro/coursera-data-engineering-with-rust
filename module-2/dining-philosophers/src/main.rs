@@ -2,8 +2,6 @@ use std::{thread, time::Instant};
 
 use clap::Parser;
 use clap_num::number_range;
-use env_logger;
-use log;
 
 use dining_philosophers::{
     kitchen::{Kitchen, Waiter, WaiterAlgorithm},
@@ -46,7 +44,7 @@ fn main() {
 
     let start = Instant::now();
 
-    feast(&philosophers, &kitchen.waiter());
+    feast(&philosophers, kitchen.waiter());
 
     log::info!("Total time: {:?}", start.elapsed());
 }
