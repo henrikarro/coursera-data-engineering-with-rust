@@ -49,14 +49,19 @@ static PHILOSOPHER_NAMES: &[&str] = &[
     "Thales of Miletus",
 ];
 
-pub fn create_philosophers(num_forks: usize) -> Vec<Philosopher> {
+pub static NUM_PHILOSOPHERS: usize = PHILOSOPHER_NAMES.len();
+
+pub fn create_philosophers(num_philosophers: usize, num_forks: usize) -> Vec<Philosopher> {
     PHILOSOPHER_NAMES
         .iter()
         .enumerate()
-        .map(|(id, name)| {
-            let left_fork_id = id % num_forks;
-            let right_fork_id = (left_fork_id + 1) % num_forks;
-            Philosopher::new(id, left_fork_id, right_fork_id, name)
-        })
+        .filter(|(id, _name)| id < &num_philosophers)
+        .map(|(id, name)| create_philosopher(num_forks, id, *name))
         .collect()
+}
+
+fn create_philosopher(num_forks: usize, id: usize, name: &str) -> Philosopher {
+    let left_fork_id = id % num_forks;
+    let right_fork_id = (left_fork_id + 1) % num_forks;
+    Philosopher::new(id, left_fork_id, right_fork_id, name)
 }

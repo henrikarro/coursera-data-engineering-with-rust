@@ -2,6 +2,9 @@
 name = "dining-philosophers"
 version = "0.1.0"
 edition = "2024"
+description = "An example of the Dining Philosophers problem, allowing different algorithms for picking forks"
 
 [dependencies]
+clap = { version = "4.5.51", features = ["derive"] }
+clap-num = "1.2.0"
 crossbeam-channel = "0.5.15"
