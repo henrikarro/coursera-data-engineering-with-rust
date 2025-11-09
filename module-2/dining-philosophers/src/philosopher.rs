@@ -22,12 +22,12 @@ impl Philosopher {
     pub fn eat(&self, waiter: &Waiter) {
         let forks = waiter.get_forks(self);
 
-        println!("{} eating...", self.name);
+        log::info!("{} eating...", self.name);
         thread::sleep(Duration::from_secs(1));
-        println!("{} finished eating", self.name);
+        log::info!("{} finished eating", self.name);
 
-        println!("{} putting down fork {}", self.name, forks.0.id);
-        println!("{} putting down fork {}", self.name, forks.1.id);
+        log::info!("{} putting down fork {}", self.name, forks.0.id);
+        log::info!("{} putting down fork {}", self.name, forks.1.id);
     }
 }
 

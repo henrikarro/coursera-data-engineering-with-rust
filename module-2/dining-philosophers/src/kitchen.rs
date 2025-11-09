@@ -75,16 +75,16 @@ impl Waiter {
     }
 
     fn pick_up_fork(&self, philosopher: &Philosopher, fork_id: usize) -> MutexGuard<'_, Fork> {
-        println!("{} trying to pick up fork {}", philosopher.name, fork_id);
+        log::info!("{} trying to pick up fork {}", philosopher.name, fork_id);
         let fork = self.forks.get(fork_id).unwrap().get();
-        println!("{} picked up fork {}", philosopher.name, fork.id);
+        log::info!("{} picked up fork {}", philosopher.name, fork.id);
         fork
     }
 
     fn greedily_get_forks(&self, philosopher: &Philosopher) -> (MutexGuard<'_, Fork>, MutexGuard<'_, Fork>) {
         loop {
             if let Some((first_fork, second_fork)) = self.find_any_free_forks() {
-                println!(
+                log::info!(
                     "{} greedily picked up forks {} and {}",
                     philosopher.name, first_fork.id, second_fork.id
                 );

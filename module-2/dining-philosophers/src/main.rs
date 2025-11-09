@@ -2,6 +2,9 @@ use std::{thread, time::Instant};
 
 use clap::Parser;
 use clap_num::number_range;
+use env_logger;
+use log;
+
 use dining_philosophers::{
     kitchen::{Kitchen, Waiter, WaiterAlgorithm},
     philosopher::{NUM_PHILOSOPHERS, Philosopher, create_philosophers},
@@ -25,14 +28,16 @@ struct Args {
 }
 
 fn main() {
+    configure_logging();
+
     let args = Args::parse();
 
-    let num_forks= args.num_forks;
+    let num_forks = args.num_forks;
     let algorithm = args.algorithm;
     let kitchen = Kitchen::new(num_forks, algorithm);
     let philosophers = create_philosophers(args.num_philosphers, num_forks);
 
-    println!(
+    log::info!(
         "We have {} philosophers and {} forks, using the {:?} waiter algorithm",
         philosophers.len(),
         num_forks,
@@ -43,7 +48,12 @@ fn main() {
 
     feast(&philosophers, &kitchen.waiter());
 
-    println!("Total time: {:?}", start.elapsed());
+    log::info!("Total time: {:?}", start.elapsed());
+}
+
+fn configure_logging() {
+    let env = env_logger::Env::new().filter_or("RUST_LOG", "info");
+    env_logger::Builder::from_env(env).init();
 }
 
 fn feast(philosophers: &Vec<Philosopher>, waiter: &Waiter) {
